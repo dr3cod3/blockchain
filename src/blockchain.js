@@ -193,7 +193,7 @@ class Blockchain {
         this.chain.forEach(async block =>{
           if(block.height > 0) { 
              let star = await block.getBData()
-                 if(star && star.address === address){
+                 if(star && star.owner === address){
                      console.log(star);
                      stars.push(star);
              }

@@ -40,14 +40,13 @@ class Block {
        const lexicalThis =  () =>{
         return new Promise((resolve, reject) => {
             // Save in auxiliary variable the current block hash
-            const current_hash = this.hash;
+            const current_block = {...this, hash:null};
             // Recalculate the hash of the Block
-            const blockHash_rehash = SHA256(JSON.stringify(this)).toString();
+            const blockHash_reHash = SHA256(JSON.stringify(current_block)).toString();
             // Comparing if the hashes changed
-            if(current_hash !== null && current_hash === blockHash_rehash) resolve(true);
-            // Returning the Block is valid
-            reject(Error(false));
+            if(this.hash === blockHash_reHash) resolve(true)// Returning the block is valdid;
             // Returning the Block is not valid
+            resolve(false);
 
         });
       } 

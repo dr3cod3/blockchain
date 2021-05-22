@@ -73,10 +73,15 @@ class Blockchain {
           block.hash = SHA256(JSON.stringify(block)).toString();
           this.chain.push(block);
           this.height = this.chain.length;
-          return new Promise((resolve, reject) => {
-            block?resolve(block):reject(Error("Sorry, something went wrong!!"));
+          console.log(this.chain);
+          this.validateChain().then (res => {
+              if(res.length > 0) return Promise.resolve(res);
+          });
+          return Promise.resolve(block);
+          //return new Promise((resolve, reject) => {
+          //block?resolve(block):reject(Error("Sorry, something went wrong!!"));
 
-        }); 
+        //}); 
     }
 
     return lexicalThis();
@@ -118,24 +123,22 @@ class Blockchain {
         //let self = this;
         const lexicalThis = () => { 
             const time = parseInt(message.split(':')[1]);
-            //console.log(time);
             const current_time = parseInt(new Date().getTime().toString().slice(0, -3));
-            if(current_time - time < 300) {
+            if((current_time - time) < 300) {
                if(bitcoinMessage.verify(message, address, signature)){
-                   star.owner = address;
-                    const new_block = new BlockClass.Block(star);
-                  //  console.log(new_block.time);
+                    const new_block = new BlockClass.Block({star:star, owner:address});
                     this._addBlock(new_block);
                     return new Promise( (resolve) => {
                     resolve(new_block);
-                   // console.log(new_block.height)
                });
             } else{
                 return new Promise((reject) =>{
                      reject({message: "Something wrong with the message, address or signature!!" })
                 });
             }
-            } 
+            } else{
+                return Promise.resolve("Time elapsed");
+            }
         } 
     
     return lexicalThis();
@@ -218,14 +221,11 @@ class Blockchain {
         const lexicalThis = () =>{
            const errorLog = [];
             this.chain.forEach(async (block, index, arr) =>{
-                await block.validate().then().catch(error => {if(!error) errorLog.push(`Block:${block.height} hash is not valid`)});
-                //if(block.previousBlokcHash !== null && arr[index - 1].hash !== block.previousBlockHash) errorLog.push(`Block:${block.height -1} hash is not valid`);
-                    
+                let block_validation = await block.validate();
+                if(!block_validation && block.previousBlokcHash !== null && arr[index - 1].hash !== block.previousBlockHash) errorLog.push(`Block:${block.height -1} hash is not valid`);
             });
-            return new Promise((resolve) =>{
-                return resolve(errorLog);
-            }); 
-        }  
+            return Promise.resolve(errorLog.length > 0 ?errorLog:"The blocks and blockChian is valid")       
+         }  
         return lexicalThis();
 
     }
